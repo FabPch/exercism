@@ -1,64 +1,30 @@
 const std = @import("std");
-const print = std.debug.print;
-const ArrayList = std.ArrayList;
-const StringHashMap = std.StringHashMap;
 const test_allocator = std.testing.allocator;
 
-test "string hash map" {
-    var map = StringHashMap(u16).init(test_allocator);
-    defer map.deinit();
+test "duplicate with lower" {
+    const line = "hello You";
+    var lower_slice: []u8 = try test_allocator.alloc(u8, line.len);
+    defer test_allocator.free(lower_slice);
 
-    try map.put("hello", 1);
-
-    var count = map.get("hello") orelse 0;
-    print("Type of count if found: {?}\n", .{count});
-
-    count = map.get("hey") orelse 0;
-    print("Type of count if not found: {?}\n", .{count});
+    for (line, 0..) |char, index| {
+        lower_slice[index] = std.ascii.toLower(char);
+    }
+    std.debug.print("copy: {s}\n", .{lower_slice});
 }
 
-test "iterate on string" {
-    const string = "hello, how are you ? you";
-    const separators = [_]u8{ '\n', ' ', '\t', '!', '?', ',', '.', ':', ';' };
+test "duplicate with function" {
+    const line = "Hallo, wie ghet's ?";
+    var lower_line = try dupeLineInLowerCase(test_allocator, line);
+    defer test_allocator.free(lower_line);
 
-    var word = ArrayList(u8).init(test_allocator);
-    defer word.deinit();
+    std.debug.print("copy with function: {s}", .{lower_line});
+}
 
-    var map = StringHashMap(u32).init(test_allocator);
-    defer map.deinit();
+fn dupeLineInLowerCase(allocator: std.mem.Allocator, line: []const u8) ![]u8 {
+    var lower_line: []u8 = try allocator.alloc(u8, line.len);
 
-    for (string) |char| {
-        var is_separator: bool = false;
-
-        for (separators) |sep| {
-            if (char == sep) {
-                is_separator = true;
-                if (word.items.len > 0) {
-                    print("word is: {s}\n", .{word.items});
-                    var count = map.get(word.items) orelse 0;
-                    try map.put(word.items, count + @as(u32, @intCast(word.items.len)));
-
-                    word.deinit();
-                    word = ArrayList(u8).init(test_allocator);
-                }
-            }
-        }
-
-        if (!is_separator) {
-            try word.append(char);
-        }
+    for (line, 0..) |char, index| {
+        lower_line[index] = std.ascii.toLower(char);
     }
-
-    if (word.items.len > 0) {
-        print("word is: {s}\n", .{word.items});
-        var count = map.get(word.items) orelse 0;
-        try map.put(word.items, count + @as(u32, @intCast(word.items.len)));
-    }
-
-    var iter = map.iterator();
-    while (iter.next()) |item| {
-        print("Key is: {s}, value is: {s}\n", .{ item.key_ptr, item.value_ptr });
-    }
-
-    print("ArrayList is: {s}\n", .{word.items});
+    return lower_line;
 }

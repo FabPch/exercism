@@ -1,0 +1,14 @@
+zig test --test-filter "count one word" .\test_word_count.zig
+zig test --test-filter "count one of each word" .\test_word_count.zig
+zig test --test-filter "multiple occurrences of a word" .\test_word_count.zig
+zig test --test-filter "handles cramped lists" .\test_word_count.zig
+zig test --test-filter "handles expanded lists" .\test_word_count.zig
+zig test --test-filter "ignore punctuation" .\test_word_count.zig
+zig test --test-filter "include numbers" .\test_word_count.zig
+zig test --test-filter "normalize case" .\test_word_count.zig
+zig test --test-filter "with apostrophes" .\test_word_count.zig
+zig test --test-filter "with quotations" .\test_word_count.zig
+zig test --test-filter "substrings from the beginning" .\test_word_count.zig
+zig test --test-filter "multiple spaces not detected as a word" .\test_word_count.zig
+zig test --test-filter "alternating word separators not detected as a word" .\test_word_count.zig
+zig test --test-filter "quotation for word with apostrophe" .\test_word_count.zig
