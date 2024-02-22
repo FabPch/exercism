@@ -19,14 +19,20 @@ pub fn countWords(allocator: std.mem.Allocator, line: []const u8) !std.StringHas
     var cursor: u8 = 0;
 
     for (line, 0..) |char, index| {
+        //(char != '\'' or index == 0)
         if (!std.ascii.isAlphanumeric(char)) {
             if (index - cursor > 0) {
                 print("separator is: {}\n", .{char});
                 print("word is: {s}\n", .{line[cursor..index]});
 
                 var word = try dupeWordInLowerCase(allocator, line[cursor..index]);
-                var count = map.get(word) orelse 0;
-                try map.put(word, count + 1);
+                var entry = try map.getOrPut(word);
+                if (entry.found_existing) {
+                    entry.value_ptr.* += 1;
+                    allocator.free(word);
+                } else {
+                    entry.value_ptr.* = 1;
+                }
             }
 
             cursor += @as(u8, @intCast(index)) - cursor + 1; // hel 0 1 2 3 = sep -> 0 + 3 + 1 = 3
@@ -40,8 +46,13 @@ pub fn countWords(allocator: std.mem.Allocator, line: []const u8) !std.StringHas
         print("word is: {s}\n", .{line[cursor..line.len]});
 
         var word = try dupeWordInLowerCase(allocator, line[cursor..line.len]);
-        var count = map.get(word) orelse 0;
-        try map.put(word, count + 1);
+        var entry = try map.getOrPut(word);
+        if (entry.found_existing) {
+            entry.value_ptr.* += 1;
+            allocator.free(word);
+        } else {
+            entry.value_ptr.* = 1;
+        }
     }
 
     return map;

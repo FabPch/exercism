@@ -30,16 +30,16 @@ test "count one of each word" {
 }
 
 test "multiple occurrences of a word" {
-    // const s = "one fish two fish red fish blue fish";
-    const s = "one fish two fisha red fishaa blue fishaaaa"; // work when no occurrences
+    const s = "one fish two fish red fish blue fish";
+    // const s = "one fish two fisha red fishaa blue fishaaaa"; // work when no occurrences
     var map = try countWords(testing.allocator, s);
     defer freeKeysAndDeinit(&map);
-    // try testing.expectEqual(@as(u32, 5), map.count());
-    // try testing.expectEqual(@as(?u32, 1), map.get("one"));
-    // try testing.expectEqual(@as(?u32, 4), map.get("fish"));
-    // try testing.expectEqual(@as(?u32, 1), map.get("two"));
-    // try testing.expectEqual(@as(?u32, 1), map.get("red"));
-    // try testing.expectEqual(@as(?u32, 1), map.get("blue"));
+    try testing.expectEqual(@as(u32, 5), map.count());
+    try testing.expectEqual(@as(?u32, 1), map.get("one"));
+    try testing.expectEqual(@as(?u32, 4), map.get("fish"));
+    try testing.expectEqual(@as(?u32, 1), map.get("two"));
+    try testing.expectEqual(@as(?u32, 1), map.get("red"));
+    try testing.expectEqual(@as(?u32, 1), map.get("blue"));
 }
 
 test "handles cramped lists" {
