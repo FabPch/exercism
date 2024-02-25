@@ -1,11 +1,21 @@
 const std = @import("std");
 const StringHashMap = std.StringHashMap;
 const print = std.debug.print;
+// const apostrophe: u8 = '\'';
 
-fn dupeWordInLowerCase(allocator: std.mem.Allocator, line: []const u8) ![]u8 {
-    var lower_line: []u8 = try allocator.alloc(u8, line.len);
+fn dupWordInLowerCaseWithoutQuotes(allocator: std.mem.Allocator, line: []const u8) ![]u8 {
+    var start: usize = 0;
+    var end: usize = line.len;
 
-    for (line, 0..) |char, index| {
+    if (line[0] == '\'') {
+        start += 1;
+    }
+    if (line[line.len - 1] == '\'') {
+        end -= 1;
+    }
+
+    var lower_line: []u8 = try allocator.alloc(u8, end - start);
+    for (line[start..end], 0..) |char, index| {
         lower_line[index] = std.ascii.toLower(char);
     }
 
@@ -19,14 +29,13 @@ pub fn countWords(allocator: std.mem.Allocator, line: []const u8) !std.StringHas
     var cursor: u8 = 0;
 
     for (line, 0..) |char, index| {
-        //(char != '\'' or index == 0)
-        if (!std.ascii.isAlphanumeric(char)) {
+        // If index is not at the end, we retrieve on word when we meet a separator:
+        //   (!std.ascii.isAlphanumeric(char) and char != '\'')
+        if (!std.ascii.isAlphanumeric(char) and char != '\'') {
             if (index - cursor > 0) {
-                print("separator is: {}\n", .{char});
-                print("word is: {s}\n", .{line[cursor..index]});
-
-                var word = try dupeWordInLowerCase(allocator, line[cursor..index]);
+                const word = try dupWordInLowerCaseWithoutQuotes(allocator, line[cursor..index]);
                 var entry = try map.getOrPut(word);
+
                 if (entry.found_existing) {
                     entry.value_ptr.* += 1;
                     allocator.free(word);
@@ -35,18 +44,16 @@ pub fn countWords(allocator: std.mem.Allocator, line: []const u8) !std.StringHas
                 }
             }
 
-            cursor += @as(u8, @intCast(index)) - cursor + 1; // hel 0 1 2 3 = sep -> 0 + 3 + 1 = 3
-            print("cursor: {}\n", .{cursor});
+            cursor += @as(u8, @intCast(index)) - cursor + 1; // increment cursor to +1 or word.len
         }
     }
 
-    print("line.len: {}, cursor: {}\n", .{ line.len, cursor });
-
-    if (line.len - cursor > 0) {
-        print("word is: {s}\n", .{line[cursor..line.len]});
-
-        var word = try dupeWordInLowerCase(allocator, line[cursor..line.len]);
+    // If index is at the last position, we retrieve the last word, except if this just an apostrophe:
+    //   (line.len - cursor > 0 and (line.len - cursor != 1 or line[line.len - 1] != '\''))
+    if (line.len - cursor > 0 and (line.len - cursor != 1 or line[line.len - 1] != '\'')) {
+        var word = try dupWordInLowerCaseWithoutQuotes(allocator, line[cursor..line.len]);
         var entry = try map.getOrPut(word);
+
         if (entry.found_existing) {
             entry.value_ptr.* += 1;
             allocator.free(word);
